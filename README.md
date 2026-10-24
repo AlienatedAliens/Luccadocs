@@ -1,33 +1,39 @@
 # Project Lucca: evidence and results
 
-> This repository contains documents only. Paths like `src/…`, `tests/…` and `logs/…` refer to the main code repository, which is not public yet (planned for [date]). Access is available on request: [your email].
+> This repository contains public evidence, pre-registration protocols, and research ledgers for Project Lucca. File paths (`src/…`, `tests/…`, `logs/…`) refer to the main private agent codebase. Read access for grant evaluators, researchers, and reviewers is available upon request (or via collaborator invite upon inquiry to `@AlienatedAliens`).
 
 ## What it is
 
-A local desktop agent built around two safety mechanisms:
+A local desktop companion agent built around two core verification mechanisms and a local NLI verifier:
 
-1. **Provenance-gated memory.** Memory writes need an HMAC-SHA256 signature, so model narration and untrusted tool output can't become stored "facts". Rules the agent proposes for itself stay in quarantine until I approve them.
-2. **Receipt-checking of action claims.** A supervisor compares what the agent says it did ("I deleted X") against tool-execution receipts from the current turn.
+1. **Provenance-gated memory (`ProvenanceGate`).** Memory writes require an authentic domain-separated HMAC-SHA256 signature (`ADR-006`), ensuring model narration (`LLM_NARRATION`) and untrusted tool outputs cannot become persistent stored beliefs. Self-induced procedural rules remain strictly in quarantine (`D-REAS-06`) until human review.
+2. **Receipt-checking of action claims (`TruthInReceiptMatcher`).** A deterministic clause-level syntactic extractor and receipt unifier (sub-50 µs on CPU, zero-LLM) intercepts streaming output and compares what the agent says it did ("I deleted X") against authentic execution receipts (`ToolReceipt`) from the active turn before tokens reach text-to-speech or UI rendering.
+3. **Semantic consistency verifier (`VerifierWorker`).** An in-process ModernBERT-base NLI classifier (149M parameters) running locally via OpenVINO for memory consistency and contradiction checking.
 
 ## What works today
 
-- The receipt matcher passes 146 authored tests. On 200 live transcripts from two small models (T=0.6) it went from catching 1 of 23 ungrounded action claims to 23 of 23, with 0 of 100 claim-free controls flagged. These numbers are in-sample (see the erratum).
-- Memory recall against the bare model: 10/10 vs 0/10 (the bare model has no memory by design).
-- The NLI consistency verifier scores 93/100 on a hand-labeled pair set when given a generous timeout.
+- The receipt matcher passes 146 authored tests (73 unit + 73 grammar tests; 186 in the full authored suite). On 200 live transcripts from two small models ($T=0.6$) it went from catching 1 of 23 ungrounded action claims to 23 of 23, with 0 of 100 claim-free controls flagged. These numbers are strictly in-sample calibration (see [Erratum](ERRATUM_CALIBRATION_2026-10-24.md)).
+- Memory recall against the bare model: 10/10 vs 0/10 (+100 pp, exact McNemar $p = 0.00195$; bare model has no memory by construction).
+- The NLI consistency verifier achieves 93/100 accuracy (contradiction P/R 1.000 / 1.000) on a hand-labeled benchmark when given an unconstrained 500 ms evaluation window.
 
 ## Not established yet
 
-- Whether the matcher fixes hold on new data. That is the pre-registered held-out test below.
-- Verifier behavior under production latency: at the 50 ms timeout, 81 of 100 pairs time out, contradiction recall is 0.075, and all 10 downstream consumers fail open.
-- Receipt introspection (8/10 vs 7/10) and abstention (9/10 vs 10/10) show no measurable difference from the bare model at n=10.
-- All labels are from a single annotator (me).
+- **Out-of-sample generalization:** Whether the matcher fixes hold on new, unseen prompts and verbs. This is the subject of the pre-registered held-out evaluation below.
+- **Production verifier timeout degradation:** Under the 50 ms interactive budget on CPU, mean latency is 57.1 ms, causing 81 of 100 pairs to time out. Contradiction recall drops to 0.075, and all 10 downstream consumers currently fail open.
+- **Null results on small contrastive batteries ($n=10$):** Receipt introspection (8/10 vs 7/10, $p = 1.000$) and calibrated abstention (9/10 vs 10/10, $p = 1.000$) show no statistically significant difference from the bare model.
+- **TTS safety guard keyword regex failure:** Blocked 0 of 10 conversational harmful probes (3/10 refused by native model weights). It is not relied upon.
+- **Single-annotator labeling:** All development and calibration labels are from a single annotator (the author).
 
 ## Documents
 
-- [Evidence ledger](EVIDENCE_LEDGER.md)
-- [Pre-registered held-out protocol](PREREG_MATCHER_SENSITIVITY.md), SHA-256 `b6b1a671491a45839d23552d946e9ee3136a64da97c6ed4098f710fbbded6884`
-- [Erratum](ERRATUM_CALIBRATION_2026-10-24.md)
+- [Evidence ledger](EVIDENCE_LEDGER.md) — Benchmark results, Wilson 95% score CIs, and documented failure modes.
+- [Pre-registered held-out protocol](PREREG_MATCHER_SENSITIVITY.md) — Pre-registered evaluation plan (SHA-256: `b6b1a671491a45839d23552d946e9ee3136a64da97c6ed4098f710fbbded6884`).
+- [Calibration erratum (2026-10-24)](ERRATUM_CALIBRATION_2026-10-24.md) — Self-disclosed audit of baseline replication differences, clause counts, and hash verifications.
+- [Fail-open vulnerability analysis](FAILOPEN_ANALYSIS.md) — Systematic audit of the 10 NLI downstream consumers and the 3-tier remediation plan.
+- [Library extraction plan](EXTRACTION_PLAN.md) — Packaging specification for the standalone `agent-provenance-guard` Python library.
 
-## Planned work
+## Planned work (Grant Deliverables)
 
-A pre-registered held-out test of the matcher, a fix for the verifier's fail-open path, and a standalone release of the two mechanisms.
+1. **A pre-registered held-out test of the matcher:** 250 fresh prompts across three model scales (Gemma 4 12B, E4B, E2B), including unseen verbs absent from development data. Outputs will be labeled blind and shuffled with supervisor flags hidden, with a second independent annotator double-labeling a subset for inter-annotator agreement (Cohen's $\kappa$). Raw labels will be published. Protocol SHA-256: `b6b1a671491a45839d23552d946e9ee3136a64da97c6ed4098f710fbbded6884`.
+2. **Remediating the verifier's fail-open path and latency bottleneck:** Refactoring all 10 downstream consumers to fail closed/quarantine on timeout, introducing an asynchronous two-phase commit queue for memory/belief updates (evaluated at 500 ms where contradiction recall is 1.000), and evaluating OpenVINO INT8 quantization to clear the 50 ms budget without recall degradation (see [Fail-open analysis](FAILOPEN_ANALYSIS.md)).
+3. **Standalone open-source release (`agent-provenance-guard`):** Extracting the HMAC provenance gate and deontic receipt matcher into a zero-bloat, MIT-licensed Python library with zero LLM dependencies and sub-millisecond execution so external frameworks (LangChain, AutoGen, Claude Code) can prevent confabulated memory writes and false action claims (see [Extraction plan](EXTRACTION_PLAN.md)).
