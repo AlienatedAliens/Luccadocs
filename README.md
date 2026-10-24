@@ -20,7 +20,6 @@ A local desktop agent built around two safety mechanisms:
 - Whether the matcher fixes hold on new data. That is the pre-registered held-out test below.
 - Verifier behavior under production latency: at the 50 ms timeout, 81 of 100 pairs time out, contradiction recall is 0.075, and all 10 downstream consumers fail open.
 - Receipt introspection (8/10 vs 7/10) and abstention (9/10 vs 10/10) show no measurable difference from the bare model at n=10.
-- The TTS safety guard blocked 0 of 10 harmful probes. I don't rely on it.
 - All labels are from a single annotator (me).
 
 ## Documents
