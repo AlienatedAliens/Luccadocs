@@ -1,6 +1,6 @@
 # Project Lucca: evidence and results
 
-> This repository contains public evidence, pre-registration protocols, and research ledgers for Project Lucca. File paths (`src/…`, `tests/…`, `logs/…`) refer to the main private agent codebase. Read access for grant evaluators, researchers, and reviewers is available upon request (or via collaborator invite upon inquiry to `@AlienatedAliens`).
+> This repository contains public evidence, pre-registration protocols, and research ledgers for Project Lucca. The complete companion agent codebase, test suite (1,243+ tests), and development history are public at [github.com/AlienatedAliens/ProjectLucca](https://github.com/AlienatedAliens/ProjectLucca). File paths (`src/…`, `tests/…`, `logs/…`) reference that repository directly.
 
 ## What it is
 
