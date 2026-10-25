@@ -13,7 +13,7 @@
    - *Cryptographic Provenance Gates Mitigate Multi-Session Memory Poisoning in Autonomous Agents*
    - **Protocol:** [`PREREG_MEMORY_POISONING_ABLATION.md`](PREREG_MEMORY_POISONING_ABLATION.md)
    - **Manuscript PDF:** [Download Paper 1 PDF](https://alienatedaliens.github.io/ProjectLucca/papers/01_memory_poisoning_ablation.pdf)
-   - **Key Finding:** Provenance gating eliminates recursive self-poisoning (0.0% vs 100.0% in Naive RAG, exact McNemar $p = 6.98 \times 10^{-10}$), preserves conversational continuity (100.0% vs 0.0% in deletion), retains 96.7% benign calculation continuity, and confirms the empirical open boundary on user misinformation (100.0% absorption). Dual-annotator agreement: $\kappa = 0.7683$.
+   - **Key Finding:** Provenance gating mitigates recursive self-poisoning across evaluated natural confabulations (0.0% vs 100.0% in Naive RAG, exact McNemar $p = 6.98 \times 10^{-10}$), preserves conversational continuity (100.0% vs 0.0% in deletion), retains 96.7% benign calculation continuity, and confirms the empirical open boundary on user misinformation (100.0% absorption). Dual-annotator agreement: $\kappa = 0.7683$.
 
 3. **Empirical Study 2 — Held-Out Deontic Output Supervision & SOAC (Pre-registered `prereg-supervision-v1`):**
    - *Why Speech-Regex Action Supervisors Miss Live Output: An Empirical Evasion Taxonomy and Held-Out Structured Action Contract Evaluation*
